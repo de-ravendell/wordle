@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wordle</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f6f6f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        h1 {
+            color: #3a3a3a;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #3a3a3a;
+            padding-bottom: 5px;
+        }
+        
+        .game-container {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .board {
+            display: grid;
+            grid-template-rows: repeat(6, 60px);
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .row {
+            display: grid;
+            grid-template-columns: repeat(5, 60px);
+            gap: 5px;
+        }
+        
+        .tile {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #d3d6da;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            font-weight: bold;
+            text-transform: uppercase;
+            background-color: white;
+        }
+        
+        .tile[data-state="empty"] {
+            border: 2px solid #d3d6da;
+        }
+        
+        .tile[data-state="tbd"] {
+            border: 2px solid #878a8c;
+        }
+        
+        .tile[data-state="correct"] {
+            background-color: #6aaa64;
+            color: white;
+            border-color: #6aaa64;
+        }
+        
+        .tile[data-state="present"] {
+            background-color: #c9b458;
+            color: white;
+            border-color: #c9b458;
+        }
+        
+        .tile[data-state="absent"] {
+            background-color: #787c7e;
+            color: white;
+            border-color: #787c7e;
+        }
+        
+        .keyboard {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 20px;
+        }
+        
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .key {
+            min-width: 40px;
+            height: 58px;
+            border-radius: 4px;
+            border: none;
+            background-color: #d3d6da;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-transform: uppercase;
+        }
+        
+        .key.wide {
+            min-width: 65px;
+            font-size: 12px;
+        }
+        
+        .key[data-state="correct"] {
+            background-color: #6aaa64;
+            color: white;
+        }
+        
+        .key[data-state="present"] {
+            background-color: #c9b458;
+            color: white;
+        }
+        
+        .key[data-state="absent"] {
+            background-color: #787c7e;
+            color: white;
+        }
+        
+        .message {
+            height: 30px;
+            margin: 10px 0;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #6aaa64;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .btn.give-up {
+            background-color: #c9b458;
+        }
+        
+        .btn.new-word {
+            background-color: #787c7e;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+        }
+        
+        .modal h2 {
+            margin-top: 0;
+        }
+        
+        .modal .word {
+            font-weight: bold;
+            color: #6aaa64;
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        
+        .how-to-play {
+            max-width: 500px;
+            margin-top: 30px;
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 600px) {
+            .tile {
+                width: 50px;
+                height: 50px;
+                font-size: 28px;
+            }
+            
+            .row {
+                grid-template-columns: repeat(5, 50px);
+            }
+            
+            .key {
+                min-width: 30px;
+                height: 50px;
+                font-size: 14px;
+            }
+            
+            .key.wide {
+                min-width: 50px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Wordle</h1>
+    
+    <div class="game-container">
+        <div class="message" id="message"></div>
+        
+        <div class="board" id="board"></div>
+        
+        <div class="controls">
+            <button class="btn give-up" id="give-up-btn">GIVE UP</button>
+            <button class="btn new-word" id="new-word-btn">NEW WORD</button>
+        </div>
+        
+        <div class="keyboard">
+            <div class="keyboard-row">
+                <div class="key" data-key="Q">Q</div>
+                <div class="key" data-key="W">W</div>
+                <div class="key" data-key="E">E</div>
+                <div class="key" data-key="R">R</div>
+                <div class="key" data-key="T">T</div>
+                <div class="key" data-key="Y">Y</div>
+                <div class="key" data-key="U">U</div>
+                <div class="key" data-key="I">I</div>
+                <div class="key" data-key="O">O</div>
+                <div class="key" data-key="P">P</div>
+            </div>
+            <div class="keyboard-row">
+                <div class="key" data-key="A">A</div>
+                <div class="key" data-key="S">S</div>
+                <div class="key" data-key="D">D</div>
+                <div class="key" data-key="F">F</div>
+                <div class="key" data-key="G">G</div>
+                <div class="key" data-key="H">H</div>
+                <div class="key" data-key="J">J</div>
+                <div class="key" data-key="K">K</div>
+                <div class="key" data-key="L">L</div>
+            </div>
+            <div class="keyboard-row">
+                <div class="key wide" data-key="Enter">Enter</div>
+                <div class="key" data-key="Z">Z</div>
+                <div class="key" data-key="X">X</div>
+                <div class="key" data-key="C">C</div>
+                <div class="key" data-key="V">V</div>
+                <div class="key" data-key="B">B</div>
+                <div class="key" data-key="N">N</div>
+                <div class="key" data-key="M">M</div>
+                <div class="key wide" data-key="Backspace">⌫</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Game Over</h2>
+            <p id="modal-message"></p>
+            <div class="word" id="target-word"></div>
+            <button class="btn" id="modal-btn">Play Again</button>
+        </div>
+    </div>
+    
+    <div class="how-to-play">
+        <h2>How to Play</h2>
+        <p><strong>Guess the Wordle in 6 tries.</strong></p>
+        <ul style="text-align: left; padding-left: 20px;">
+            <li>Each guess must be a valid 5-letter word.</li>
+            <li>The colour of the tiles will change to show how close your guess was to the word.</li>
+            <li><span style="color: #6aaa64; font-weight: bold;">Green</span>: Letter is in the correct position.</li>
+            <li><span style="color: #c9b458; font-weight: bold;">Yellow</span>: Letter is in the word but in the wrong position.</li>
+            <li><span style="color: #787c7e; font-weight: bold;">Grey</span>: Letter is not in the word.</li>
+        </ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Word list (5-letter British English words)
+            /*
+            const wordList = [
+                'apple', 'beach', 'brain', 'bread', 'brush', 'chair', 'chest', 'chord', 
+                'click', 'clock', 'cloud', 'dance', 'diary', 'drink', 'earth', 'flame', 
+                'fruit', 'ghost', 'grape', 'happy', 'heart', 'house', 'juice', 'light', 
+                'money', 'music', 'party', 'pizza', 'plant', 'radio', 'river', 'salad', 
+                'sheep', 'sugar', 'table', 'toast', 'train', 'water', 'whale', 'wheel'
+            ];
+            */
+            try (BufferedReader reader = new BufferedReader(new FileReader("words.txt"))) {
+                String line;
+                Set<String> fiveLetterWords = new HashSet<>();
+                while ((line = reader.readLine()) != null) {
+                    if (line.length() == 5) {
+                        fiveLetterWords.add(line);
+                    }
+                }
+                wordList.addAll(fiveLetterWords);
+                wordList = new ArrayList<>(new HashSet<>(wordList));
+            } catch (IOException e) {
+                System.out.println("Error: no such file as 'words.txt'。");
+            } catch (Exception e) {
+                System.out.println("Unexpected Error: " + e.getMessage());
+            }
+
+            // Game state
+            let targetWord = '';
+            let currentRow = 0;
+            let currentTile = 0;
+            let gameOver = false;
+            
+            // DOM elements
+            const board = document.getElementById('board');
+            const message = document.getElementById('message');
+            const giveUpBtn = document.getElementById('give-up-btn');
+            const newWordBtn = document.getElementById('new-word-btn');
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalMessage = document.getElementById('modal-message');
+            const targetWordDisplay = document.getElementById('target-word');
+            const modalBtn = document.getElementById('modal-btn');
+            const keys = document.querySelectorAll('.key');
+            
+            // Initialize the game
+            function initGame() {
+                // Select a random word
+                targetWord = wordList[Math.floor(Math.random() * wordList.length)];
+                
+                // Reset game state
+                currentRow = 0;
+                currentTile = 0;
+                gameOver = false;
+                message.textContent = '';
+                
+                // Create board tiles
+                board.innerHTML = '';
+                for (let i = 0; i < 6; i++) {
+                    const row = document.createElement('div');
+                    row.className = 'row';
+                    
+                    for (let j = 0; j < 5; j++) {
+                        const tile = document.createElement('div');
+                        tile.className = 'tile';
+                        tile.dataset.state = 'empty';
+                        row.appendChild(tile);
+                    }
+                    
+                    board.appendChild(row);
+                }
+                
+                // Reset keyboard colors
+                keys.forEach(key => {
+                    key.dataset.state = '';
+                });
+            }
+            
+            // Handle key press (physical keyboard)
+            document.addEventListener('keydown', (e) => {
+                if (gameOver) return;
+                
+                if (e.key === 'Enter') {
+                    submitGuess();
+                } else if (e.key === 'Backspace') {
+                    deleteLetter();
+                } else if (/^[a-zA-Z]$/.test(e.key)) {
+                    insertLetter(e.key.toUpperCase());
+                }
+            });
+            
+            // Handle virtual keyboard clicks
+            keys.forEach(key => {
+                key.addEventListener('click', () => {
+                    if (gameOver) return;
+                    
+                    const keyValue = key.dataset.key;
+                    if (keyValue === 'Enter') {
+                        submitGuess();
+                    } else if (keyValue === 'Backspace') {
+                        deleteLetter();
+                    } else {
+                        insertLetter(keyValue);
+                    }
+                });
+            });
+            
+            // Insert a letter
+            function insertLetter(letter) {
+                if (currentTile < 5) {
+                    const row = board.children[currentRow];
+                    const tile = row.children[currentTile];
+                    tile.textContent = letter;
+                    tile.dataset.state = 'tbd';
+                    currentTile++;
+                }
+            }
+            
+            // Delete a letter
+            function deleteLetter() {
+                if (currentTile > 0) {
+                    currentTile--;
+                    const row = board.children[currentRow];
+                    const tile = row.children[currentTile];
+                    tile.textContent = '';
+                    tile.dataset.state = 'empty';
+                }
+            }
+            
+            // Submit a guess
+            function submitGuess() {
+                if (currentTile !== 5) {
+                    showMessage('Not enough letters');
+                    return;
+                }
+                
+                const row = board.children[currentRow];
+                let guess = '';
+                for (let i = 0; i < 5; i++) {
+                    guess += row.children[i].textContent.toLowerCase();
+                }
+                
+                // Check if it's a valid word (in our word list)
+                if (!wordList.includes(guess)) {
+                    showMessage('Not in word list');
+                    return;
+                }
+                
+                // Check the guess against the target word
+                const targetLetters = targetWord.split('');
+                const guessLetters = guess.split('');
+                const result = [];
+                
+                // First pass: mark correct letters
+                for (let i = 0; i < 5; i++) {
+                    if (guessLetters[i] === targetLetters[i]) {
+                        result[i] = 'correct';
+                        targetLetters[i] = null; // Mark as used
+                    }
+                }
+                
+                // Second pass: mark present letters
+                for (let i = 0; i < 5; i++) {
+                    if (result[i]) continue; // Already marked as correct
+                    
+                    const index = targetLetters.indexOf(guessLetters[i]);
+                    if (index !== -1) {
+                        result[i] = 'present';
+                        targetLetters[index] = null; // Mark as used
+                    } else {
+                        result[i] = 'absent';
+                    }
+                }
+                
+                // Update tile colors
+                for (let i = 0; i < 5; i++) {
+                    const tile = row.children[i];
+                    tile.dataset.state = result[i];
+                    
+                    // Update keyboard colors
+                    const key = document.querySelector(`.key[data-key="${tile.textContent}"]`);
+                    if (!key.dataset.state || key.dataset.state === 'absent' || 
+                        (key.dataset.state === 'present' && result[i] === 'correct')) {
+                        key.dataset.state = result[i];
+                    }
+                }
+                
+                // Check for win
+                if (guess === targetWord) {
+                    gameOver = true;
+                    showModal('You Win!', `You guessed the word in ${currentRow + 1} ${currentRow === 0 ? 'try' : 'tries'}!`);
+                    return;
+                }
+                
+                // Move to next row
+                currentRow++;
+                currentTile = 0;
+                
+                // Check for game over
+                if (currentRow === 6) {
+                    gameOver = true;
+                    showModal('Game Over', 'Better luck next time!');
+                }
+            }
+            
+            // Show message
+            function showMessage(text) {
+                message.textContent = text;
+                setTimeout(() => {
+                    message.textContent = '';
+                }, 2000);
+            }
+            
+            // Show modal
+            function showModal(title, msg) {
+                modalTitle.textContent = title;
+                modalMessage.textContent = msg;
+                targetWordDisplay.textContent = targetWord.toUpperCase();
+                modal.style.display = 'flex';
+            }
+            
+            // Event listeners for buttons
+            giveUpBtn.addEventListener('click', () => {
+                if (!gameOver) {
+                    gameOver = true;
+                    showModal('Game Over', 'You gave up!');
+                }
+            });
+            
+            newWordBtn.addEventListener('click', initGame);
+            
+            modalBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+                initGame();
+            });
+            
+            // Start the game
+            initGame();
+        });
+    </script>
+</body>
+</html>
