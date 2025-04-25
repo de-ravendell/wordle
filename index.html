@@ -309,17 +309,17 @@
                     return;
                 }
                 const allWords = data.split('\n');
-                let worldList = [];
+                let wordList = [];
 
                for (let i = 0; i < allWords.length; i++) {
                     const word = allWords[i].trim();
                     // 检查单词长度是否为五
                     if (word.length === 5) {
-                        worldList.push(word);
+                        wordList.push(word);
                     }
                 }
 
-                console.log(worldList);
+                console.log(wordList);
             });   
 
             // Game state
