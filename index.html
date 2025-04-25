@@ -65,22 +65,48 @@
             border: 2px solid #878a8c;
         }
         
-        .tile[data-state="correct"] {
+        /* Default color theme (green/yellow/gray) */
+        .tile[data-state="correct"].color-theme-default,
+        .key[data-state="correct"].color-theme-default {
             background-color: #6aaa64;
             color: white;
             border-color: #6aaa64;
         }
         
-        .tile[data-state="present"] {
+        .tile[data-state="present"].color-theme-default,
+        .key[data-state="present"].color-theme-default {
             background-color: #c9b458;
             color: white;
             border-color: #c9b458;
         }
         
-        .tile[data-state="absent"] {
+        .tile[data-state="absent"].color-theme-default,
+        .key[data-state="absent"].color-theme-default {
             background-color: #787c7e;
             color: white;
             border-color: #787c7e;
+        }
+        
+        /* Dark color theme (black/dark gray/light gray) */
+        .tile[data-state="correct"].color-theme-dark,
+        .key[data-state="correct"].color-theme-dark {
+            background-color: #000000;
+            color: white;
+            border-color: #000000;
+        }
+        
+        .tile[data-state="present"].color-theme-dark,
+        .key[data-state="present"].color-theme-dark {
+            background-color: #555555;
+            color: white;
+            border-color: #555555;
+        }
+        
+        .tile[data-state="absent"].color-theme-dark,
+        .key[data-state="absent"].color-theme-dark {
+            background-color: #aaaaaa;
+            color: white;
+            border-color: #aaaaaa;
         }
         
         .keyboard {
@@ -116,21 +142,6 @@
             font-size: 12px;
         }
         
-        .key[data-state="correct"] {
-            background-color: #6aaa64;
-            color: white;
-        }
-        
-        .key[data-state="present"] {
-            background-color: #c9b458;
-            color: white;
-        }
-        
-        .key[data-state="absent"] {
-            background-color: #787c7e;
-            color: white;
-        }
-        
         .message {
             height: 30px;
             margin: 10px 0;
@@ -160,6 +171,10 @@
         
         .btn.new-word {
             background-color: #787c7e;
+        }
+        
+        .btn.change-theme {
+            background-color: #3a3a3a;
         }
         
         .modal {
@@ -235,6 +250,7 @@
         <div class="controls">
             <button class="btn give-up" id="give-up-btn">GIVE UP</button>
             <button class="btn new-word" id="new-word-btn">NEW WORD</button>
+            <button class="btn change-theme" id="change-theme-btn">CHANGE COLOUR THEME</button>
         </div>
         
         <div class="keyboard">
@@ -290,9 +306,9 @@
         <ul style="text-align: left; padding-left: 20px;">
             <li>Each guess must be a valid 5-letter word.</li>
             <li>The colour of the tiles will change to show how close your guess was to the word.</li>
-            <li><span style="color: #6aaa64; font-weight: bold;">Green</span>: Letter is in the correct position.</li>
-            <li><span style="color: #c9b458; font-weight: bold;">Yellow</span>: Letter is in the word but in the wrong position.</li>
-            <li><span style="color: #787c7e; font-weight: bold;">Grey</span>: Letter is not in the word.</li>
+            <li><span style="color: #6aaa64; font-weight: bold;">Green</span>/<span style="color: #000; font-weight: bold;">Black</span>: Letter is in the correct position.</li>
+            <li><span style="color: #c9b458; font-weight: bold;">Yellow</span>/<span style="color: #555; font-weight: bold;">Dark Gray</span>: Letter is in the word but in the wrong position.</li>
+            <li><span style="color: #787c7e; font-weight: bold;">Gray</span>/<span style="color: #aaa; font-weight: bold;">Light Gray</span>: Letter is not in the word.</li>
         </ul>
     </div>
 
@@ -342,18 +358,21 @@
             let currentRow = 0;
             let currentTile = 0;
             let gameOver = false;
+            let currentTheme = 'default'; // 'default' or 'dark'
             
             // DOM elements
             const board = document.getElementById('board');
             const message = document.getElementById('message');
             const giveUpBtn = document.getElementById('give-up-btn');
             const newWordBtn = document.getElementById('new-word-btn');
+            const changeThemeBtn = document.getElementById('change-theme-btn');
             const modal = document.getElementById('modal');
             const modalTitle = document.getElementById('modal-title');
             const modalMessage = document.getElementById('modal-message');
             const targetWordDisplay = document.getElementById('target-word');
             const modalBtn = document.getElementById('modal-btn');
             const keys = document.querySelectorAll('.key');
+            const tiles = document.querySelectorAll('.tile');
             
             // Initialize the game
             function initGame() {
@@ -377,6 +396,7 @@
                         const tile = document.createElement('div');
                         tile.className = 'tile';
                         tile.dataset.state = 'empty';
+                        tile.classList.add(`color-theme-${currentTheme}`);
                         row.appendChild(tile);
                     }
                     
@@ -386,6 +406,25 @@
                 // Reset keyboard colors
                 keys.forEach(key => {
                     key.dataset.state = '';
+                    key.classList.remove('color-theme-default', 'color-theme-dark');
+                    key.classList.add(`color-theme-${currentTheme}`);
+                });
+            }
+            
+            // Change color theme
+            function changeColorTheme() {
+                currentTheme = currentTheme === 'default' ? 'dark' : 'default';
+                
+                // Update all tiles
+                document.querySelectorAll('.tile').forEach(tile => {
+                    tile.classList.remove('color-theme-default', 'color-theme-dark');
+                    tile.classList.add(`color-theme-${currentTheme}`);
+                });
+                
+                // Update all keys
+                keys.forEach(key => {
+                    key.classList.remove('color-theme-default', 'color-theme-dark');
+                    key.classList.add(`color-theme-${currentTheme}`);
                 });
             }
             
@@ -541,6 +580,8 @@
             });
             
             newWordBtn.addEventListener('click', initGame);
+            
+            changeThemeBtn.addEventListener('click', changeColorTheme);
             
             modalBtn.addEventListener('click', () => {
                 modal.style.display = 'none';
