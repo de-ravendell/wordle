@@ -297,30 +297,45 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             // Word list (5-letter British English words)
-            const fs = require('fs');
-            const path = require('path');
-
-            const filePath = path.join(__dirname, 'words.txt');
-            fs.readFile(filePath, 'utf8', (err, data) => {
-                if (err) {
-                    console.error('Error:', err);
-                    return;
-                }
-                const allWords = data.split('\n');
-                let wordList = [];
-
-               for (let i = 0; i < allWords.length; i++) {
+            let wordList = [];
+            
+            try {
+                const response = await fetch('words.txt');
+                const text = await response.text();
+                const allWords = text.split('\n');
+                
+                for (let i = 0; i < allWords.length; i++) {
                     const word = allWords[i].trim();
-                    // 检查单词长度是否为五
                     if (word.length === 5) {
-                        wordList.push(word);
+                        wordList.push(word.toLowerCase());
                     }
                 }
-
-                console.log(wordList);
-            });   
+                
+                if (wordList.length === 0) {
+                    // Fallback words in case words.txt is not available
+                    wordList = [
+                        'apple', 'beach', 'brain', 'bread', 'brush', 'candy', 'chest', 
+                        'cloud', 'dance', 'drink', 'earth', 'flame', 'fruit', 'ghost', 
+                        'grape', 'happy', 'house', 'juice', 'light', 'money', 'music', 
+                        'party', 'pizza', 'plant', 'radio', 'river', 'salad', 'sheep', 
+                        'smile', 'snack', 'snake', 'spice', 'spoon', 'storm', 'table', 
+                        'toast', 'tiger', 'train', 'water', 'whale', 'wheel', 'woman'
+                    ];
+                }
+            } catch (error) {
+                console.error('Error loading word list:', error);
+                // Fallback words in case of error
+                wordList = [
+                    'apple', 'beach', 'brain', 'bread', 'brush', 'candy', 'chest', 
+                    'cloud', 'dance', 'drink', 'earth', 'flame', 'fruit', 'ghost', 
+                    'grape', 'happy', 'house', 'juice', 'light', 'money', 'music', 
+                    'party', 'pizza', 'plant', 'radio', 'river', 'salad', 'sheep', 
+                    'smile', 'snack', 'snake', 'spice', 'spoon', 'storm', 'table', 
+                    'toast', 'tiger', 'train', 'water', 'whale', 'wheel', 'woman'
+                ];
+            }
 
             // Game state
             let targetWord = '';
@@ -344,6 +359,7 @@
             function initGame() {
                 // Select a random word
                 targetWord = wordList[Math.floor(Math.random() * wordList.length)];
+                console.log('Target word:', targetWord); // For debugging (remove in production)
                 
                 // Reset game state
                 currentRow = 0;
