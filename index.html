@@ -299,7 +299,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Word list (5-letter British English words)
-            /*
             const wordList = [
                 'apple', 'beach', 'brain', 'bread', 'brush', 'chair', 'chest', 'chord', 
                 'click', 'clock', 'cloud', 'dance', 'diary', 'drink', 'earth', 'flame', 
@@ -307,7 +306,6 @@
                 'money', 'music', 'party', 'pizza', 'plant', 'radio', 'river', 'salad', 
                 'sheep', 'sugar', 'table', 'toast', 'train', 'water', 'whale', 'wheel'
             ];
-            */
             try (BufferedReader reader = new BufferedReader(new FileReader("words.txt"))) {
                 String line;
                 Set<String> fiveLetterWords = new HashSet<>();
@@ -319,9 +317,9 @@
                 wordList.addAll(fiveLetterWords);
                 wordList = new ArrayList<>(new HashSet<>(wordList));
             } catch (IOException e) {
-                System.out.println("Error: no such file as 'words.txt'。");
+                alert("Error: no such file as 'words.txt'。");
             } catch (Exception e) {
-                System.out.println("Unexpected Error: " + e.getMessage());
+                alert("Unexpected Error: " + e.getMessage());
             }
 
             // Game state
