@@ -299,28 +299,28 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Word list (5-letter British English words)
-            const wordList = [
-                'apple', 'beach', 'brain', 'bread', 'brush', 'chair', 'chest', 'chord', 
-                'click', 'clock', 'cloud', 'dance', 'diary', 'drink', 'earth', 'flame', 
-                'fruit', 'ghost', 'grape', 'happy', 'heart', 'house', 'juice', 'light', 
-                'money', 'music', 'party', 'pizza', 'plant', 'radio', 'river', 'salad', 
-                'sheep', 'sugar', 'table', 'toast', 'train', 'water', 'whale', 'wheel'
-            ];
-            try (BufferedReader reader = new BufferedReader(new FileReader("words.txt"))) {
-                String line;
-                Set<String> fiveLetterWords = new HashSet<>();
-                while ((line = reader.readLine()) != null) {
-                    if (line.length() == 5) {
-                        fiveLetterWords.add(line);
+            const fs = require('fs');
+            const path = require('path');
+
+            const filePath = path.join(__dirname, 'words.txt');
+            fs.readFile(filePath, 'utf8', (err, data) => {
+                if (err) {
+                    console.error('Error:', err);
+                    return;
+                }
+                const allWords = data.split('\n');
+                let worldList = [];
+
+               for (let i = 0; i < allWords.length; i++) {
+                    const word = allWords[i].trim();
+                    // 检查单词长度是否为五
+                    if (word.length === 5) {
+                        worldList.push(word);
                     }
                 }
-                wordList.addAll(fiveLetterWords);
-                wordList = new ArrayList<>(new HashSet<>(wordList));
-            } catch (IOException e) {
-                alert("Error: no such file as 'words.txt'。");
-            } catch (Exception e) {
-                alert("Unexpected Error: " + e.getMessage());
-            }
+
+                console.log(worldList);
+            });   
 
             // Game state
             let targetWord = '';
