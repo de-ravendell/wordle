@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wordle</title>
+    <title>WORDLE</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -316,11 +316,16 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // Word list (5-letter British English words)
             let wordList = [];
+            let answerList = [];
             
             try {
                 const response = await fetch('word.txt');
                 const text = await response.text();
                 const allWords = text.split('\n');
+
+                const response = await fetch('words.txt');
+                const text = await response.text();
+                const answerWords = text.split('\n');
                 
                 for (let i = 0; i < allWords.length; i++) {
                     const word = allWords[i].trim();
@@ -328,9 +333,16 @@
                         wordList.push(word.toLowerCase());
                     }
                 }
+
+                for (let i = 0; i < answerWords.length; i++) {
+                    const word = answerWords[i].trim();
+                    if (word.length === 5) {
+                        answerList.push(word.toLowerCase());
+                    }
+                }
                 
                 if (wordList.length === 0) {
-                    // Fallback words in case words.txt is not available
+                    // Fallback words in case word.txt is not available
                     wordList = [
                         'apple', 'beach', 'brain', 'bread', 'brush', 'candy', 'chest', 
                         'cloud', 'dance', 'drink', 'earth', 'flame', 'fruit', 'ghost', 
@@ -340,10 +352,31 @@
                         'toast', 'tiger', 'train', 'water', 'whale', 'wheel', 'woman'
                     ];
                 }
+
+                if (answerList.length === 0) {
+                    // Fallback words in case words.txt is not available
+                    answerList = [
+                        'apple', 'beach', 'brain', 'bread', 'brush', 'candy', 'chest', 
+                        'cloud', 'dance', 'drink', 'earth', 'flame', 'fruit', 'ghost', 
+                        'grape', 'happy', 'house', 'juice', 'light', 'money', 'music', 
+                        'party', 'pizza', 'plant', 'radio', 'river', 'salad', 'sheep', 
+                        'smile', 'snack', 'snake', 'spice', 'spoon', 'storm', 'table', 
+                        'toast', 'tiger', 'train', 'water', 'whale', 'wheel', 'woman'
+                    ];
+                }
+
             } catch (error) {
                 console.error('Error loading word list:', error);
                 // Fallback words in case of error
                 wordList = [
+                    'apple', 'beach', 'brain', 'bread', 'brush', 'candy', 'chest', 
+                    'cloud', 'dance', 'drink', 'earth', 'flame', 'fruit', 'ghost', 
+                    'grape', 'happy', 'house', 'juice', 'light', 'money', 'music', 
+                    'party', 'pizza', 'plant', 'radio', 'river', 'salad', 'sheep', 
+                    'smile', 'snack', 'snake', 'spice', 'spoon', 'storm', 'table', 
+                    'toast', 'tiger', 'train', 'water', 'whale', 'wheel', 'woman'
+                ];
+                answerList = [
                     'apple', 'beach', 'brain', 'bread', 'brush', 'candy', 'chest', 
                     'cloud', 'dance', 'drink', 'earth', 'flame', 'fruit', 'ghost', 
                     'grape', 'happy', 'house', 'juice', 'light', 'money', 'music', 
@@ -377,8 +410,7 @@
             // Initialize the game
             function initGame() {
                 // Select a random word
-                targetWord = wordList[Math.floor(Math.random() * wordList.length)];
-                console.log('Target word:', targetWord); // For debugging (remove in production)
+                targetWord = answerList[Math.floor(Math.random() * answerList.length)];
                 
                 // Reset game state
                 currentRow = 0;
