@@ -323,9 +323,9 @@
                 const text = await response.text();
                 const allWords = text.split('\n');
 
-                const response = await fetch('words.txt');
-                const text = await response.text();
-                const answerWords = text.split('\n');
+                const response1 = await fetch('words.txt');
+                const text1 = await response1.text();
+                const answerWords = text1.split('\n');
                 
                 for (let i = 0; i < allWords.length; i++) {
                     const word = allWords[i].trim();
